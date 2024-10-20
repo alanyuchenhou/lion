@@ -23,11 +23,16 @@ app.put('/', async (req, res) => {
     return res.status(400).send('contents is required')
   }
   const storage = new Storage()
-  await storage
-    .bucket(process.env.BUCKET_NAME || '')
-    .file(process.env.OBJECT_NAME || '')
-    .save(contents)
-  res.send('contents saved')
+  const bucketName = process.env.BUCKET_NAME
+  if (!bucketName) {
+    return res.status(500).send('unable to find bucket name')
+  }
+  const fileName = process.env.OBJECT_NAME
+  if (!bucketName) {
+    return res.status(500).send('unable to find object name')
+  }
+  await storage.bucket(bucketName).file(fileName).save(contents)
+  res.send({ fileName: fileName })
 })
 
 export default app
