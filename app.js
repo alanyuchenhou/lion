@@ -12,7 +12,7 @@ app.use(express.json())
 app.use(pinoHttp)
 
 // Example endpoint
-app.post('/', async (req, res) => {
+app.put('/', async (req, res) => {
   // Use basic logger without HTTP request info
   logger.info({ logField: 'custom-entry', arbitraryField: 'custom-entry' }) // Example of structured logging
   // Use request-based logger with log correlation
