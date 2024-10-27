@@ -31,7 +31,7 @@ app.put('/', async (req, res) => {
   res.send({ fileName: fileName })
 })
 
-app.get('/transcription/:callSid', async (req, res) => {
+app.get('/transcriptions/:callSid', async (req, res) => {
   const { callSid } = req.params
   if (!callSid) {
     return res.status(400).send('callSid is required')
