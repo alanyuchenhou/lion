@@ -37,12 +37,12 @@ app.get('/transcription/:callSid', async (req, res) => {
     return res.status(400).send('callSid is required')
   }
   req.log.info({ callSid })
-  const transcriptionDirectory =
+  const transcriptionsDirectory =
     process.env.GCP_STORAGE_TRANSCRIPTIONS_DIRECTORY
-  if (!transcriptionDirectory) {
+  if (!transcriptionsDirectory) {
     return res.status(500).send('unable to find transcription directory')
   }
-  const fileName = `${transcriptionDirectory}${callSid}.json`
+  const fileName = `${transcriptionsDirectory}${callSid}.json`
   const fileContent = await getBucket().file(fileName).download()
   const transcription = JSON.parse(fileContent.toString()).filter(
     (message) => message.role !== 'system',
