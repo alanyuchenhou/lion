@@ -48,10 +48,10 @@ app.get('/transcriptions/:callSid', async (req, res) => {
     const transcription = JSON.parse(fileContent.toString()).filter(
       (message) => message.role !== 'system',
     )
-    res.send(transcription)
+    return res.send(transcription)
   } catch (error) {
     req.log.error(error)
-    res.status(error.code).send({ callSid })
+    return res.send([])
   }
 })
 
