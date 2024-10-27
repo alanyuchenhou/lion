@@ -15,8 +15,7 @@
     "build-image": "gcloud builds submit --pack image=us-central1-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/samples/microservice-template:manual",
     "deploy": "gcloud run deploy microservice-template --image us-central1-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/samples/microservice-template:manual --region us-central1",
     "test": "mocha test/app.test.js --check-leaks",
-    "system-test": "mocha test/system.test.js --timeout=180000",
-    "prepare": "husky"
+    "system-test": "mocha test/system.test.js --timeout=180000"
   },
   "lint-staged": {
     "**/*": "prettier --write --ignore-unknown"
