@@ -15,7 +15,11 @@
     "build-image": "gcloud builds submit --pack image=us-central1-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/samples/microservice-template:manual",
     "deploy": "gcloud run deploy microservice-template --image us-central1-docker.pkg.dev/$GOOGLE_CLOUD_PROJECT/samples/microservice-template:manual --region us-central1",
     "test": "mocha test/app.test.js --check-leaks",
-    "system-test": "mocha test/system.test.js --timeout=180000"
+    "system-test": "mocha test/system.test.js --timeout=180000",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
   },
   "author": "Google LLC",
   "license": "Apache-2.0",
@@ -31,7 +35,10 @@
   "devDependencies": {
     "eslint": "^9.0.0",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^9.1.0",
     "got": "^14.0.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
     "mocha": "^10.0.0",
     "nodemon": "^3.0.0",
     "pino-pretty": "^11.3.0",
