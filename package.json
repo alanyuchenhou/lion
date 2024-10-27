@@ -17,6 +17,9 @@
     "test": "mocha test/app.test.js --check-leaks",
     "system-test": "mocha test/system.test.js --timeout=180000"
   },
+  "lint-staged": {
+    "**/*": "prettier --write --ignore-unknown"
+  },
   "author": "Google LLC",
   "license": "Apache-2.0",
   "dependencies": {
@@ -31,10 +34,14 @@
   "devDependencies": {
     "eslint": "^9.0.0",
     "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^9.1.0",
     "got": "^14.0.0",
+    "husky": "^9.1.6",
+    "lint-staged": "^15.2.10",
     "mocha": "^10.0.0",
     "nodemon": "^3.0.0",
     "pino-pretty": "^11.3.0",
+    "prettier": "^3.3.3",
     "supertest": "^7.0.0"
   }
 }

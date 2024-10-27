@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import gcpMetadata from 'gcp-metadata';
-import {GoogleAuth} from 'google-auth-library';
-const auth = new GoogleAuth();
+import gcpMetadata from 'gcp-metadata'
+import { GoogleAuth } from 'google-auth-library'
+const auth = new GoogleAuth()
 
 /**
  * Fetch GCP Project Id
@@ -23,7 +23,7 @@ const auth = new GoogleAuth();
 export async function fetchProjectId() {
   // Use the 'google-auth-library' to make a request to the metadata server or
   // default to Application Default Credentials in your local environment.
-  return await auth.getProjectId();
+  return await auth.getProjectId()
 }
 
 /**
@@ -31,11 +31,11 @@ export async function fetchProjectId() {
  * @return {string | undefined} Region in format: projects/PROJECT_NUMBER/regions/REGION
  */
 export async function fetchServiceRegion() {
-  let region = undefined;
+  let region = undefined
   if (gcpMetadata.isAvailable()) {
-    region = await gcpMetadata.instance('region');
+    region = await gcpMetadata.instance('region')
   }
-  return region;
+  return region
 }
 
 /**
@@ -46,7 +46,7 @@ export async function fetchServiceRegion() {
  * @return {GaxiosPromise<AxiosResponse>} request response
  */
 export async function authenticatedRequest(url, method) {
-  const client = await auth.getIdTokenClient(url);
-  const response = await client.request({url, method});
-  return response;
+  const client = await auth.getIdTokenClient(url)
+  const response = await client.request({ url, method })
+  return response
 }
