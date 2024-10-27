@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import Pino from 'pino';
-import PinoHttp from 'pino-http';
+import Pino from 'pino'
+import PinoHttp from 'pino-http'
 
 /**
  * Set project Id for log correlation in request-based logger
  * @param {string} projectId - Google Cloud Platform Project Id
  */
-let project;
+let project
 export const initLogCorrelation = (projectId) => {
-  project = projectId;
-};
+  project = projectId
+}
 
 /**
  * Create a custom formatter to set the "severity" property in the JSON payload
@@ -33,9 +33,9 @@ export const initLogCorrelation = (projectId) => {
  */
 const formatters = {
   level(label) {
-    return { severity: label };
+    return { severity: label }
   },
-};
+}
 
 /**
  * Initialize pino logger
@@ -44,7 +44,7 @@ export const logger = Pino({
   formatters,
   // Set log message property name to "message" for automatic parsing
   messageKey: 'message',
-});
+})
 
 /**
  * Create request-based logger with trace ID field for logging correlation
@@ -53,14 +53,14 @@ export const logger = Pino({
 export const pinoHttp = PinoHttp({
   logger,
   reqCustomProps: function (req) {
-    const traceHeader = req.header('X-Cloud-Trace-Context');
-    let trace;
+    const traceHeader = req.header('X-Cloud-Trace-Context')
+    let trace
     if (traceHeader) {
-      const [traceId] = traceHeader.split('/');
-      trace = `projects/${project}/traces/${traceId}`;
+      const [traceId] = traceHeader.split('/')
+      trace = `projects/${project}/traces/${traceId}`
     }
     return {
       'logging.googleapis.com/trace': trace,
-    };
+    }
   },
-});
+})

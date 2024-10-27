@@ -12,17 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
-import js from "@eslint/js";
-import globals from "globals";
+import js from '@eslint/js'
+import globals from 'globals'
 
 export default [
-    js.configs.recommended,
-    {
-        languageOptions: {
-            globals: {
-                ...globals.node,
-                ...globals.mocha,
-            }
-        },
-    }]
+  js.configs.recommended,
+  {
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.mocha,
+      },
+    },
+  },
+]
