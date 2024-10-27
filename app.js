@@ -43,11 +43,16 @@ app.get('/transcriptions/:callSid', async (req, res) => {
     return res.status(500).send('unable to find transcription directory')
   }
   const fileName = `${transcriptionsDirectory}${callSid}.json`
-  const fileContent = await getBucket().file(fileName).download()
-  const transcription = JSON.parse(fileContent.toString()).filter(
-    (message) => message.role !== 'system',
-  )
-  res.send(transcription)
+  try {
+    const fileContent = await getBucket().file(fileName).download()
+    const transcription = JSON.parse(fileContent.toString()).filter(
+      (message) => message.role !== 'system',
+    )
+    res.send(transcription)
+  } catch (error) {
+    req.log.error(error)
+    res.status(error.code).send({ callSid })
+  }
 })
 
 export default app
