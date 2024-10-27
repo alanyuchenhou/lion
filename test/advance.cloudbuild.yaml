@@ -10,81 +10,81 @@
 # limitations under the License.
 
 steps:
-- id: 'Install Testing Dependencies'
-  name: node:20-slim
-  args: ['npm', 'install']
+  - id: 'Install Testing Dependencies'
+    name: node:20-slim
+    args: ['npm', 'install']
 
-- id: 'Lint'
-  name: node:20-slim
-  args: ['npm', 'run', 'lint']
+  - id: 'Lint'
+    name: node:20-slim
+    args: ['npm', 'run', 'lint']
 
-- id: 'Run Unit Tests'
-  name: node:20-slim
-  args: ['npm', 'run', 'test']
+  - id: 'Run Unit Tests'
+    name: node:20-slim
+    args: ['npm', 'run', 'test']
 
-# Setup resources for system tests
+  # Setup resources for system tests
 
-- id: 'Build Container Image'
-  name: 'gcr.io/k8s-skaffold/pack:latest'
-  entrypoint: pack
-  args:
-    - build
-    - '$_GCR_HOSTNAME/$PROJECT_ID/$_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA' # Tag docker image with git commit SHA
-    - '--builder=gcr.io/buildpacks/builder:latest'
-    - '--path=.'
+  - id: 'Build Container Image'
+    name: 'gcr.io/k8s-skaffold/pack:latest'
+    entrypoint: pack
+    args:
+      - build
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA' # Tag docker image with git commit SHA
+      - '--builder=gcr.io/buildpacks/builder:latest'
+      - '--path=.'
 
-- id: 'Push Container Image'
-  name: 'gcr.io/cloud-builders/docker:latest'
-  args:
-    - push
-    - '$_GCR_HOSTNAME/$PROJECT_ID/$_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
+  - id: 'Push Container Image'
+    name: 'gcr.io/cloud-builders/docker:latest'
+    args:
+      - push
+      - '$_GCR_HOSTNAME/$PROJECT_ID/$_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA'
 
-- id: 'Deploy to Cloud Run'
-  name: 'gcr.io/cloud-builders/gcloud:latest'
-  entrypoint: /bin/bash
-  args:
-    - '-c'
-    - |
-      gcloud run deploy ${_SERVICE_NAME}-$BUILD_ID \
-        --image $_GCR_HOSTNAME/$PROJECT_ID/$_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA \
-        --region ${_DEPLOY_REGION} \
-        --no-allow-unauthenticated
+  - id: 'Deploy to Cloud Run'
+    name: 'gcr.io/cloud-builders/gcloud:latest'
+    entrypoint: /bin/bash
+    args:
+      - '-c'
+      - |
+        gcloud run deploy ${_SERVICE_NAME}-$BUILD_ID \
+          --image $_GCR_HOSTNAME/$PROJECT_ID/$_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA \
+          --region ${_DEPLOY_REGION} \
+          --no-allow-unauthenticated
 
-- id: 'Retrieve Service URL'
-  name: 'gcr.io/cloud-builders/gcloud:latest'
-  entrypoint: /bin/bash
-  args:
-    - '-c'
-    - |
-      set -e
-      source /workspace/test/common.sh
-      echo $(get_url ${BUILD_ID}) > _service_url
-      echo "Cloud Run URL for ${_SERVICE_NAME}-$BUILD_ID is $(cat _service_url)"
-      echo $(get_idtoken) > _id_token
-  env:
-    - '_SERVICE_NAME=${_SERVICE_NAME}'
-    - '_DEPLOY_REGION=${_DEPLOY_REGION}'
-    - 'PROJECT_ID=${PROJECT_ID}'
+  - id: 'Retrieve Service URL'
+    name: 'gcr.io/cloud-builders/gcloud:latest'
+    entrypoint: /bin/bash
+    args:
+      - '-c'
+      - |
+        set -e
+        source /workspace/test/common.sh
+        echo $(get_url ${BUILD_ID}) > _service_url
+        echo "Cloud Run URL for ${_SERVICE_NAME}-$BUILD_ID is $(cat _service_url)"
+        echo $(get_idtoken) > _id_token
+    env:
+      - '_SERVICE_NAME=${_SERVICE_NAME}'
+      - '_DEPLOY_REGION=${_DEPLOY_REGION}'
+      - 'PROJECT_ID=${PROJECT_ID}'
 
-- id: 'Run System Tests'
-  name: node:20-slim
-  entrypoint: /bin/bash
-  args:
-    - '-c'
-    - |
-      export BASE_URL=$(cat _service_url)
-      export ID_TOKEN=$(cat _id_token)
-      npm run system-test
+  - id: 'Run System Tests'
+    name: node:20-slim
+    entrypoint: /bin/bash
+    args:
+      - '-c'
+      - |
+        export BASE_URL=$(cat _service_url)
+        export ID_TOKEN=$(cat _id_token)
+        npm run system-test
 
-# Clean up system test resources
-- id: 'Delete image and service'
-  name: 'gcr.io/cloud-builders/gcloud'
-  entrypoint: '/bin/bash'
-  args:
-    - '-c'
-    - |
-      gcloud artifacts docker images delete $_GCR_HOSTNAME/$PROJECT_ID/$_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA --quiet
-      gcloud run services delete ${_SERVICE_NAME}-$BUILD_ID --region ${_DEPLOY_REGION} --quiet
+  # Clean up system test resources
+  - id: 'Delete image and service'
+    name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: '/bin/bash'
+    args:
+      - '-c'
+      - |
+        gcloud artifacts docker images delete $_GCR_HOSTNAME/$PROJECT_ID/$_REPOSITORY/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA --quiet
+        gcloud run services delete ${_SERVICE_NAME}-$BUILD_ID --region ${_DEPLOY_REGION} --quiet
 
 substitutions:
   _GCR_HOSTNAME: us-central1-docker.pkg.dev
