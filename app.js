@@ -31,21 +31,67 @@ app.put('/', async (req, res) => {
   res.send({ fileName: fileName })
 })
 
+app.post('/bots', async (req, res) => {
+  const id = Date.now().toString()
+  const { name, systemInstruction } = req.body
+  saveFile(id, name, systemInstruction)
+  res.send({ id })
+})
+
+app.get('/bots', async (req, res) => {
+  const [files] = await getBucket().getFiles({
+    prefix: getBotsDirectory(),
+  })
+  const bots = files.map(({ name, metadata }) => ({
+    id: name,
+    name: metadata.metadata?.name,
+    created: metadata.timeCreated,
+    updated: metadata.updated,
+  }))
+  return res.send(bots)
+})
+
+app.get('/bots/:id', async (req, res) => {
+  const { id } = req.params
+  const fileName = getBotFileName(id)
+  try {
+    const fileJson = await downloadFile(fileName)
+    return res.send(fileJson)
+  } catch (error) {
+    req.log.error(error)
+    return res.status(404).send({ id })
+  }
+})
+
+app.put('/bots/:id', async (req, res) => {
+  const { id } = req.params
+  const { name, systemInstruction } = req.body
+  saveFile(id, name, systemInstruction)
+  res.send({ id })
+})
+
+app.delete('/bots/:id', async (req, res) => {
+  const { id } = req.params
+  const fileName = getBotFileName(id)
+  try {
+    await getBucket().file(fileName).delete()
+    res.send({ id })
+  } catch (error) {
+    req.log.error(error)
+    return res.status(404).send({ id })
+  }
+})
+
 app.get('/transcriptions/:callSid', async (req, res) => {
   const { callSid } = req.params
   if (!callSid) {
     return res.status(400).send('callSid is required')
   }
   req.log.info({ callSid })
-  const transcriptionsDirectory =
-    process.env.GCP_STORAGE_TRANSCRIPTIONS_DIRECTORY
-  if (!transcriptionsDirectory) {
-    return res.status(500).send('unable to find transcription directory')
-  }
-  const fileName = `${transcriptionsDirectory}${callSid}.json`
+  const fileName = getTranscriptionFilename(callSid)
   try {
-    const fileContent = await getBucket().file(fileName).download()
-    const transcription = JSON.parse(fileContent.toString()).filter(
+    const messages = await downloadFile(fileName)
+    const transcription = messages.filter(
       (message) => message.role !== 'system',
     )
     return res.send(transcription)
@@ -56,3 +102,39 @@ app.get('/transcriptions/:callSid', async (req, res) => {
 })
 
 export default app
+
+async function downloadFile(fileName) {
+  const fileContent = await getBucket().file(fileName).download()
+  const fileJson = JSON.parse(fileContent.toString())
+  return fileJson
+}
+
+function saveFile(id, name, systemInstruction) {
+  const fileName = getBotFileName(id)
+  getBucket()
+    .file(fileName)
+    .save(JSON.stringify({ systemInstruction }), {
+      metadata: { metadata: { name } },
+    })
+}
+
+function getBotFileName(id) {
+  return `${getBotsDirectory()}${id}.json`
+}
+
+function getBotsDirectory() {
+  const botsDirectory = process.env.GCP_STORAGE_BOTS_PATH
+  if (!botsDirectory) {
+    throw new Error('unable to find bots directory')
+  }
+  return botsDirectory
+}
+
+function getTranscriptionFilename(callSid) {
+  const transcriptionsDirectory =
+    process.env.GCP_STORAGE_TRANSCRIPTIONS_DIRECTORY
+  if (!transcriptionsDirectory) {
+    throw new Error('unable to find transcriptions directory')
+  }
+  return `${transcriptionsDirectory}${callSid}.json`
+}
