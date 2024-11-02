@@ -31,29 +31,29 @@ app.put('/', async (req, res) => {
   res.send({ fileName: fileName })
 })
 
-app.post('/bots', async (req, res) => {
+app.post('/agents', async (req, res) => {
   const id = Date.now().toString()
   const { name, systemInstruction } = req.body
   saveFile(id, name, systemInstruction)
   res.send({ id })
 })
 
-app.get('/bots', async (req, res) => {
+app.get('/agents', async (req, res) => {
   const [files] = await getBucket().getFiles({
-    prefix: getBotsDirectory(),
+    prefix: getAgentsDirectory(),
   })
-  const bots = files.map(({ name, metadata }) => ({
+  const agents = files.map(({ name, metadata }) => ({
     id: name,
     name: metadata.metadata?.name,
     created: metadata.timeCreated,
     updated: metadata.updated,
   }))
-  return res.send(bots)
+  return res.send(agents)
 })
 
-app.get('/bots/:id', async (req, res) => {
+app.get('/agents/:id', async (req, res) => {
   const { id } = req.params
-  const fileName = getBotFileName(id)
+  const fileName = getAgentFileName(id)
   try {
     const fileJson = await downloadFile(fileName)
     return res.send(fileJson)
@@ -63,16 +63,16 @@ app.get('/bots/:id', async (req, res) => {
   }
 })
 
-app.put('/bots/:id', async (req, res) => {
+app.put('/agents/:id', async (req, res) => {
   const { id } = req.params
   const { name, systemInstruction } = req.body
   saveFile(id, name, systemInstruction)
   res.send({ id })
 })
 
-app.delete('/bots/:id', async (req, res) => {
+app.delete('/agents/:id', async (req, res) => {
   const { id } = req.params
-  const fileName = getBotFileName(id)
+  const fileName = getAgentFileName(id)
   try {
     await getBucket().file(fileName).delete()
     res.send({ id })
@@ -110,7 +110,7 @@ async function downloadFile(fileName) {
 }
 
 function saveFile(id, name, systemInstruction) {
-  const fileName = getBotFileName(id)
+  const fileName = getAgentFileName(id)
   getBucket()
     .file(fileName)
     .save(JSON.stringify({ systemInstruction }), {
@@ -118,16 +118,16 @@ function saveFile(id, name, systemInstruction) {
     })
 }
 
-function getBotFileName(id) {
-  return `${getBotsDirectory()}${id}.json`
+function getAgentFileName(id) {
+  return `${getAgentsDirectory()}${id}.json`
 }
 
-function getBotsDirectory() {
-  const botsDirectory = process.env.GCP_STORAGE_BOTS_PATH
-  if (!botsDirectory) {
-    throw new Error('unable to find bots directory')
+function getAgentsDirectory() {
+  const agentsDirectory = process.env.GCP_STORAGE_AGENTS_PATH
+  if (!agentsDirectory) {
+    throw new Error('unable to find agents directory')
   }
-  return botsDirectory
+  return agentsDirectory
 }
 
 function getTranscriptionFilename(callSid) {
