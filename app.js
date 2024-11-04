@@ -4,6 +4,7 @@ import { Storage } from '@google-cloud/storage'
 import dotenv from 'dotenv'
 dotenv.config()
 
+const JSON_EXTENSION = '.json'
 const app = express()
 // Middleware to parse JSON request bodies
 app.use(express.json())
@@ -35,15 +36,22 @@ app.post('/agents', async (req, res) => {
 })
 
 app.get('/agents', async (req, res) => {
+  const agentsPath = getAgentsPath()
   const [files] = await getBucket().getFiles({
-    prefix: getAgentsDirectory(),
+    prefix: agentsPath,
   })
-  const agents = files.map(({ name, metadata }) => ({
-    id: name,
-    name: metadata.metadata?.name,
-    created: metadata.timeCreated,
-    updated: metadata.updated,
-  }))
+  const agents = files.map(({ name, metadata }) => {
+    const id =
+      name.startsWith(agentsPath) && name.endsWith(JSON_EXTENSION)
+        ? name.slice(agentsPath.length, -JSON_EXTENSION.length)
+        : name
+    return {
+      id,
+      name: metadata.metadata?.name,
+      created: metadata.timeCreated,
+      updated: metadata.updated,
+    }
+  })
   return res.send(agents)
 })
 
@@ -115,22 +123,21 @@ function saveFile(id, name, systemInstruction) {
 }
 
 function getAgentFileName(id) {
-  return `${getAgentsDirectory()}${id}.json`
+  return `${getAgentsPath()}${id}${JSON_EXTENSION}`
 }
 
-function getAgentsDirectory() {
-  const agentsDirectory = process.env.GCP_STORAGE_AGENTS_PATH
-  if (!agentsDirectory) {
-    throw new Error('unable to find agents directory')
+function getAgentsPath() {
+  const agentsPath = process.env.GCP_STORAGE_AGENTS_PATH
+  if (!agentsPath) {
+    throw new Error('unable to find agents path')
   }
-  return agentsDirectory
+  return agentsPath
 }
 
 function getTranscriptionFilename(callSid) {
-  const transcriptionsDirectory =
-    process.env.GCP_STORAGE_TRANSCRIPTIONS_DIRECTORY
-  if (!transcriptionsDirectory) {
+  const transcriptionsPath = process.env.GCP_STORAGE_TRANSCRIPTIONS_DIRECTORY
+  if (!transcriptionsPath) {
     throw new Error('unable to find transcriptions directory')
   }
-  return `${transcriptionsDirectory}${callSid}.json`
+  return `${transcriptionsPath}${callSid}${JSON_EXTENSION}`
 }
