@@ -20,16 +20,6 @@ function getBucket() {
   return storage.bucket(bucketName)
 }
 
-app.put('/', async (req, res) => {
-  const { contents } = req.body
-  if (!contents) {
-    return res.status(400).send('contents is required')
-  }
-  const fileName = process.env.OBJECT_NAME
-  await getBucket().file(fileName).save(contents)
-  res.send({ fileName: fileName })
-})
-
 app.post('/agents', async (req, res) => {
   req.log.info({ logField: 'custom-entry' }) // https://cloud.google.com/run/docs/logging#correlate-logs
   const id = Date.now().toString()
