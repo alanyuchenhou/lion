@@ -21,7 +21,6 @@ function getBucket() {
 }
 
 app.put('/', async (req, res) => {
-  req.log.info({ logField: 'custom-entry' }) // https://cloud.google.com/run/docs/logging#correlate-logs
   const { contents } = req.body
   if (!contents) {
     return res.status(400).send('contents is required')
@@ -32,8 +31,15 @@ app.put('/', async (req, res) => {
 })
 
 app.post('/agents', async (req, res) => {
+  req.log.info({ logField: 'custom-entry' }) // https://cloud.google.com/run/docs/logging#correlate-logs
   const id = Date.now().toString()
   const { name, systemInstruction } = req.body
+  if (!name) {
+    return res.status(400).send('name is required')
+  }
+  if (!systemInstruction) {
+    return res.status(400).send('systemInstruction is required')
+  }
   saveFile(id, name, systemInstruction)
   res.send({ id })
 })
