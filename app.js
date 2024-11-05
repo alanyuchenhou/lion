@@ -60,7 +60,8 @@ app.get('/agents/:id', async (req, res) => {
   const fileName = getAgentFileName(id)
   try {
     const fileJson = await downloadFile(fileName)
-    return res.send(fileJson)
+    const agentName = await getAgentName(fileName)
+    return res.send({ name: agentName, ...fileJson })
   } catch (error) {
     req.log.error(error)
     return res.status(404).send({ id })
@@ -111,6 +112,10 @@ async function downloadFile(fileName) {
   const fileContent = await getBucket().file(fileName).download()
   const fileJson = JSON.parse(fileContent.toString())
   return fileJson
+}
+async function getAgentName(fileName) {
+  const [metadata] = await getBucket().file(fileName).getMetadata()
+  return metadata.metadata.name
 }
 
 function saveFile(id, name, systemInstruction) {
