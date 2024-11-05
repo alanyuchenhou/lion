@@ -61,7 +61,7 @@ app.get('/agents/:id', async (req, res) => {
   try {
     const fileJson = await downloadFile(fileName)
     const agentName = await getAgentName(fileName)
-    return res.send({ name: agentName, ...fileJson })
+    return res.send({ name: agentName, details: fileJson })
   } catch (error) {
     req.log.error(error)
     return res.status(404).send({ id })
