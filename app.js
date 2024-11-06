@@ -24,14 +24,11 @@ function getBucket() {
 app.post('/agents', async (req, res) => {
   req.log.info({ logField: 'custom-entry' }) // https://cloud.google.com/run/docs/logging#correlate-logs
   const id = Date.now().toString()
-  const { name, systemInstruction } = req.body
+  const { name } = req.body
   if (!name) {
     return res.status(400).send('name is required')
   }
-  if (!systemInstruction) {
-    return res.status(400).send('systemInstruction is required')
-  }
-  saveFile(id, name, systemInstruction)
+  saveFile(id, name, '')
   res.send({ id })
 })
 
