@@ -29,7 +29,7 @@ app.post('/agents', async (req, res) => {
     return res.status(400).send('name is required')
   }
   saveFile(id, name, '')
-  res.send({ id })
+  res.send({ id, name })
 })
 
 app.get('/agents', async (req, res) => {
