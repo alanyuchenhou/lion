@@ -28,7 +28,7 @@ app.post('/agents', async (req, res) => {
   if (!name) {
     return res.status(400).send('name is required')
   }
-  saveFile(id, name, '')
+  saveFile(id, name, { systemInstruction: '' })
   res.send({ id, name })
 })
 
@@ -67,8 +67,8 @@ app.get('/agents/:id', async (req, res) => {
 
 app.put('/agents/:id', async (req, res) => {
   const { id } = req.params
-  const { name, systemInstruction } = req.body
-  saveFile(id, name, systemInstruction)
+  const { name, details } = req.body
+  saveFile(id, name, details)
   res.send({ id })
 })
 
@@ -115,11 +115,11 @@ async function getAgentName(fileName) {
   return metadata.metadata.name
 }
 
-function saveFile(id, name, systemInstruction) {
+function saveFile(id, name, details) {
   const fileName = getAgentFileName(id)
   getBucket()
     .file(fileName)
-    .save(JSON.stringify({ systemInstruction }), {
+    .save(JSON.stringify(details), {
       metadata: { metadata: { name } },
     })
 }
